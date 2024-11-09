@@ -133,6 +133,16 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 	}
 	testIdentityEquality(t, id, id2)
 	testIdentityEquality(t, id2, id3)
+
+	id, err = X25519IdentityFromPassword([]byte("yellow"), nil)
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	id2, err = newX25519IdentityFromScalar(argon2.IDKey([]byte("yellow"), []byte("github.com/awnumar/agekd"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	testIdentityEquality(t, id, id2)
 }
 
 func BenchmarkX25519IdentityFromKey(b *testing.B) {
@@ -149,7 +159,8 @@ func BenchmarkX25519IdentityFromPassword(b *testing.B) {
 
 func FuzzSaltWithLabel(f *testing.F) {
 	testCases := [][]byte{
-		[]byte(nil),
+		nil,
+		{},
 		[]byte("hello"),
 	}
 	for _, testCase := range testCases {
