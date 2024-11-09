@@ -1,12 +1,14 @@
-package agekd_test
+package agekd
 
 import (
 	"bytes"
 	"io"
+	"slices"
 	"testing"
 
 	"filippo.io/age"
-	"github.com/awnumar/agekd"
+	"golang.org/x/crypto/argon2"
+	"golang.org/x/crypto/curve25519"
 )
 
 func TestX25519IdentityFromKey(t *testing.T) {
@@ -48,15 +50,15 @@ func TestX25519IdentityFromKey(t *testing.T) {
 		},
 	}
 	for _, c := range testCases {
-		id, err := agekd.X25519IdentityFromKey(c.key, c.salt)
+		id, err := X25519IdentityFromKey(c.key, c.salt)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		if id.String() != c.expID {
-			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+			t.Fatalf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
 		}
 		if id.Recipient().String() != c.expRcp {
-			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+			t.Fatalf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
 		}
 	}
 }
@@ -71,109 +73,204 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 		{
 			key:    []byte{},
 			salt:   []byte{},
-			expID:  "AGE-SECRET-KEY-18HT30KVMYGPH8GJP60ZDLQ3LL35GFVQWWX6H9EH94RF6X76WKVKSL4S5JT",
-			expRcp: "age13rcc6h7gcsa2zm9tusykare69dwev56mg7rq7jydm8z4w7ukz4kqpsljv3",
+			expID:  "AGE-SECRET-KEY-1P4J8RZE9G8EQ559XYDX024NV57DMXH0YAJUFJLH87FVNFXAWPUVQVGGSK8",
+			expRcp: "age15mehx5d4xvxfmfygc8ndx5acvy294d5j77dlwfc7ylty8hdm5uws8gfam5",
 		},
 		{
 			key:    nil,
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-18HT30KVMYGPH8GJP60ZDLQ3LL35GFVQWWX6H9EH94RF6X76WKVKSL4S5JT",
-			expRcp: "age13rcc6h7gcsa2zm9tusykare69dwev56mg7rq7jydm8z4w7ukz4kqpsljv3",
+			expID:  "AGE-SECRET-KEY-1P4J8RZE9G8EQ559XYDX024NV57DMXH0YAJUFJLH87FVNFXAWPUVQVGGSK8",
+			expRcp: "age15mehx5d4xvxfmfygc8ndx5acvy294d5j77dlwfc7ylty8hdm5uws8gfam5",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-1JF7DW7UFEC3C5ZYKE5LDVJ8EFXV28SY8VSYC4DLMM5DLGP92AC2QQ8U8LA",
-			expRcp: "age1qzxekva6d6pd27kqmj82czqnd3c9xvden5qcw00yxmym80e7w4sqsd6qrm",
+			expID:  "AGE-SECRET-KEY-1CW8DLMQEKF4E7KZ7DS4EZFHRRXKRYU0LM3JG4DZCYAC8W34DLLXQ84HR66",
+			expRcp: "age1vp667dwd3m49hvg2dzczgnj4ht6cx9rzualmlgkycglh70z4uexqp33cnm",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   []byte("bye"),
-			expID:  "AGE-SECRET-KEY-1QU2CKZHW37V0NFRCGWRVSJT7ERC96UQC6FKNZ9DD8T6V2JGTMZCQNRDD62",
-			expRcp: "age1cpt3dfuuvpr73kue65h2dg0q45d02u5g8dvdpvcktgt7pjyt7slspww6kh",
+			expID:  "AGE-SECRET-KEY-1SR0LU44D700Q7SNH9XQX4V626N69VJZ275NZ6R98NRQYKRAKUYNS453D3Y",
+			expRcp: "age1stylxkt70m49q2n0vxarxqx9ncmvu5zswuddja6wfet9r8me0c5s225387",
 		},
 		{
 			key:    []byte{125, 231, 97, 121, 25, 36, 248, 109, 22, 245, 220, 7, 19, 151, 123, 246, 40, 27, 194, 4, 133, 222, 108, 216, 32, 162, 132, 16, 142, 151, 22, 104},
 			salt:   []byte{62, 98, 62, 226, 73, 49, 93, 5, 172, 234, 232, 145, 139, 78, 172, 4, 139, 156, 74, 57, 215, 32, 72, 216, 17, 74, 220, 250, 146, 3, 190, 254},
-			expID:  "AGE-SECRET-KEY-1738FDEZTQC89XZC9TY55403TMD2LUFNAM97E4E27H55YJEH7Q6AQRPPJ3E",
-			expRcp: "age1m755tmmgjk2qdetfhnkcj8cl88v7v2dv24c0xw2q08dmn7u05qdq2hud6f",
+			expID:  "AGE-SECRET-KEY-1SK248UN253DWHNRQQR63A0C652V387ER95A5Q50F5HZEW8EHTR7STWH8EN",
+			expRcp: "age12rxldhqtm073ee845rgvencv79dyy4aykd4qc7a7tnex8m33jvqq494kpa",
 		},
 	}
 	for _, c := range testCases {
-		id, err := agekd.X25519IdentityFromPassword(c.key, c.salt)
+		id, err := X25519IdentityFromPassword(c.key, c.salt)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		if id.String() != c.expID {
-			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+			t.Fatalf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
 		}
 		if id.Recipient().String() != c.expRcp {
-			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+			t.Fatalf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
 		}
-		id, err = agekd.X25519IdentityFromPasswordWithParameters(c.key, c.salt, agekd.DefaultArgon2idTime, agekd.DefaultArgon2idMemory, agekd.DefaultArgon2idThreads)
+		id2, err := X25519IdentityFromPasswordWithParameters(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
-		if id.String() != c.expID {
-			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
-		}
-		if id.Recipient().String() != c.expRcp {
-			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
-		}
+		testIdentityEquality(t, id, id2)
 	}
+
+	id, err := X25519IdentityFromPassword([]byte("yellow"), []byte("https://"))
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	id2, err := X25519IdentityFromPasswordWithParameters([]byte("yellow"), []byte("https://"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	id3, err := newX25519IdentityFromScalar(argon2.IDKey([]byte("yellow"), []byte("https://github.com/awnumar/agekd"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	testIdentityEquality(t, id, id2)
+	testIdentityEquality(t, id2, id3)
+
+	id, err = X25519IdentityFromPassword([]byte("yellow"), nil)
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	id2, err = newX25519IdentityFromScalar(argon2.IDKey([]byte("yellow"), []byte("github.com/awnumar/agekd"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	testIdentityEquality(t, id, id2)
 }
 
 func BenchmarkX25519IdentityFromKey(b *testing.B) {
 	for range b.N {
-		agekd.X25519IdentityFromKey(nil, nil)
+		X25519IdentityFromKey(nil, nil)
 	}
 }
 
 func BenchmarkX25519IdentityFromPassword(b *testing.B) {
 	for range b.N {
-		agekd.X25519IdentityFromPassword(nil, nil)
+		X25519IdentityFromPassword(nil, nil)
 	}
 }
 
-func FuzzX25519IdentityFromKey(f *testing.F) {
-	f.Fuzz(func(t *testing.T, key, salt []byte) {
-		id, err := agekd.X25519IdentityFromKey(key, salt)
-		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
-		}
-		id2, err := agekd.X25519IdentityFromKey(key, salt)
-		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
-		}
-		if id.String() != id2.String() {
-			t.Errorf("private identities do not match")
-		}
-		if id.Recipient().String() != id2.Recipient().String() {
-			t.Errorf("public recipients do not match")
-		}
-
-		out := &bytes.Buffer{}
-		in, err := age.Encrypt(out, id.Recipient())
-		if err != nil {
-			t.Errorf("failed to init age encryption: %v", err)
-		}
-		if _, err = in.Write([]byte("hello")); err != nil {
-			t.Errorf("failed to write plaintext to encrypt writer: %v", err)
-		}
-		if err := in.Close(); err != nil {
-			t.Errorf("failed to close encrypt writer: %v", err)
-		}
-
-		decrypted, err := age.Decrypt(out, id2)
-		if err != nil {
-			t.Errorf("failed to init age decryption: %v", err)
-		}
-		decryptedData, err := io.ReadAll(decrypted)
-		if err != nil {
-			t.Errorf("failed to read plaintext from decrypt reader: %v", err)
-		}
-		if string(decryptedData) != "hello" {
-			t.Errorf("plaintext mismatch! expected 'hello', got '%s'", decryptedData)
+func FuzzSaltWithLabel(f *testing.F) {
+	testCases := [][]byte{
+		nil,
+		{},
+		[]byte("hello"),
+	}
+	for _, testCase := range testCases {
+		f.Add(testCase)
+	}
+	f.Fuzz(func(t *testing.T, salt []byte) {
+		swl := saltWithLabel(salt)
+		if !slices.Equal(swl, append(salt, []byte(kdfLabel)...)) {
+			t.Fatalf("saltWithLabel has invalid value: %v", swl)
 		}
 	})
+}
+
+func FuzzX25519IdentityFromKey(f *testing.F) {
+	testCases := []struct {
+		key  []byte
+		salt []byte
+	}{
+		{
+			key:  nil,
+			salt: nil,
+		},
+		{
+			key:  []byte{},
+			salt: []byte{},
+		},
+		{
+			key:  []byte("hello"),
+			salt: []byte("salt"),
+		},
+	}
+	for _, testCase := range testCases {
+		f.Add(testCase.key, testCase.salt)
+	}
+	f.Fuzz(func(t *testing.T, key, salt []byte) {
+		id, err := X25519IdentityFromKey(key, salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		id2, err := X25519IdentityFromKey(key, salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		testIdentityEquality(t, id, id2)
+	})
+}
+
+func FuzzX25519IdentityFromPasswordWithParameters(f *testing.F) {
+	testCases := []struct {
+		key  []byte
+		salt []byte
+	}{
+		{
+			key:  nil,
+			salt: nil,
+		},
+		{
+			key:  []byte{},
+			salt: []byte{},
+		},
+		{
+			key:  []byte("hello"),
+			salt: []byte("salt"),
+		},
+	}
+	for _, testCase := range testCases {
+		f.Add(testCase.key, testCase.salt)
+	}
+	f.Fuzz(func(t *testing.T, password, salt []byte) {
+		id, err := X25519IdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		id2, err := X25519IdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		testIdentityEquality(t, id, id2)
+	})
+}
+
+func testIdentityEquality(t *testing.T, id, id2 *age.X25519Identity) {
+	if id.String() != id2.String() {
+		t.Fatalf("private identities do not match")
+	}
+	if id.Recipient().String() != id2.Recipient().String() {
+		t.Fatalf("public recipients do not match")
+	}
+
+	out := &bytes.Buffer{}
+	in, err := age.Encrypt(out, id.Recipient())
+	if err != nil {
+		t.Fatalf("failed to init age encryption: %v", err)
+	}
+	if _, err = in.Write([]byte("hello")); err != nil {
+		t.Fatalf("failed to write plaintext to encrypt writer: %v", err)
+	}
+	if err := in.Close(); err != nil {
+		t.Fatalf("failed to close encrypt writer: %v", err)
+	}
+
+	decrypted, err := age.Decrypt(out, id2)
+	if err != nil {
+		t.Fatalf("failed to init age decryption: %v", err)
+	}
+	decryptedData, err := io.ReadAll(decrypted)
+	if err != nil {
+		t.Fatalf("failed to read plaintext from decrypt reader: %v", err)
+	}
+	if string(decryptedData) != "hello" {
+		t.Fatalf("plaintext mismatch! expected 'hello', got '%s'", decryptedData)
+	}
 }

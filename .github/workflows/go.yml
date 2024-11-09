@@ -19,6 +19,9 @@ jobs:
         go-version: 'stable'
         check-latest: true
 
+    - name: Go version
+      run: go version
+
     - name: Build
       run: go build -v ./...
 
@@ -28,5 +31,11 @@ jobs:
     - name: Benchmark
       run: go test -bench=. -run=XXX -benchmem -v ./...
 
-    - name: Fuzz
-      run: go test -fuzz=. -run=XXX -fuzztime 1m .
+    - name: FuzzSaltWithLabel
+      run: go test -fuzz=FuzzSaltWithLabel -run=XXX -fuzztime=1m -v .
+
+    - name: FuzzX25519IdentityFromKey
+      run: go test -fuzz=FuzzX25519IdentityFromKey -run=XXX -fuzztime=1m -v .
+
+    - name: FuzzX25519IdentityFromPasswordWithParameters
+      run: go test -fuzz=FuzzX25519IdentityFromPasswordWithParameters -run=XXX -fuzztime=1m -v .
