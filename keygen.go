@@ -23,7 +23,7 @@ const (
 // X25519IdentityFromKey derives an age identity from a high-entropy key. Callers are responsible for
 // ensuring that the provided key is suitably generated, e.g. by reading it from `crypto/rand`.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
-	kdf := hkdf.New(sha256.New, key, salt, []byte("age-keygen-deterministic-go"))
+	kdf := hkdf.New(sha256.New, key, salt, []byte("github.com/awnumar/agekd"))
 	secretKey := make([]byte, curve25519.ScalarSize)
 	if _, err := io.ReadFull(kdf, secretKey); err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
