@@ -1,6 +1,8 @@
 # Age Key Derivation - Go
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/awnumar/agekd.svg)](https://pkg.go.dev/github.com/awnumar/agekd)
+[![Go Reference](https://pkg.go.dev/badge/github.com/awnumar/agekd.svg)](https://pkg.go.dev/github.com/awnumar/agekd) [![Go workflow](https://github.com/awnumar/agekd/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/awnumar/agekd/actions/workflows/go.yml)
+
+
 
 `agekd` is a Go library that can be used to derive [`age`](https://github.com/FiloSottile/age) X25519 identities deterministically from keys or passwords.
 
