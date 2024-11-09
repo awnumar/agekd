@@ -33,12 +33,12 @@ func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 
 // X25519IdentityFromPassword derives an age identity from a password using Argon2id, with strong default parameters.
 func X25519IdentityFromPassword(password, salt []byte) (*age.X25519Identity, error) {
-	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, 32))
+	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
 }
 
 // X25519IdentityFromPasswordWithParameters derives an age identity from a password, with custom Argon2id parameters.
 func X25519IdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.X25519Identity, error) {
-	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, argon2idTime, argon2idMemory, argon2idThreads, 32))
+	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
 }
 
 // newX25519IdentityFromScalar returns a new X25519Identity from a raw Curve25519 scalar.
