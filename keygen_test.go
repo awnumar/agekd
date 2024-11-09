@@ -123,11 +123,16 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create age identity: %v", err)
 	}
-	id2, err := newX25519IdentityFromScalar(argon2.IDKey([]byte("yellow"), []byte("https://github.com/awnumar/agekd"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
+	id2, err := X25519IdentityFromPasswordWithParameters([]byte("yellow"), []byte("https://"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
+	if err != nil {
+		t.Fatalf("failed to create age identity: %v", err)
+	}
+	id3, err := newX25519IdentityFromScalar(argon2.IDKey([]byte("yellow"), []byte("https://github.com/awnumar/agekd"), DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
 	if err != nil {
 		t.Fatalf("failed to create age identity: %v", err)
 	}
 	testIdentityEquality(t, id, id2)
+	testIdentityEquality(t, id2, id3)
 }
 
 func BenchmarkX25519IdentityFromKey(b *testing.B) {
