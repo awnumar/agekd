@@ -65,6 +65,6 @@ func newX25519IdentityFromScalar(secretKey []byte) (*age.X25519Identity, error) 
 func saltWithLabel(salt []byte) []byte {
 	s := make([]byte, 0, len(salt)+len(kdfLabel))
 	s = append(s, salt...)
-	s = append(s, []byte(kdfLabel)...)
+	s = append(s, kdfLabel...)
 	return s
 }
