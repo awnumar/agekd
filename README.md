@@ -47,11 +47,9 @@ identity, err := agekd.X25519IdentityFromPassword(key, nil)
 The default Argon2id settings are:
 
 ```go
-const (
-	DefaultArgon2idTime    uint32 = 8
-	DefaultArgon2idMemory  uint32 = 500000 // KiB = 512 MB
-	DefaultArgon2idThreads uint8  = 8
-)
+DefaultArgon2idTime    uint32 = 8
+DefaultArgon2idMemory  uint32 = 500000 // KiB = 512 MB
+DefaultArgon2idThreads uint8  = 8
 ```
 
 but you can provide your own with:

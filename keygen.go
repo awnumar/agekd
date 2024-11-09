@@ -18,12 +18,14 @@ const (
 	DefaultArgon2idTime    uint32 = 8
 	DefaultArgon2idMemory  uint32 = 500000 // KiB = 512 MB
 	DefaultArgon2idThreads uint8  = 8
+
+	kdfLabel = "github.com/awnumar/agekd"
 )
 
 // X25519IdentityFromKey derives an age identity from a high-entropy key. Callers are responsible for
-// ensuring that the provided key is suitably generated, e.g. by reading it from `crypto/rand`.
+// ensuring that the provided key is suitably generated, e.g. by reading it from crypto/rand.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
-	kdf := hkdf.New(sha256.New, key, salt, []byte("github.com/awnumar/agekd"))
+	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabel))
 	secretKey := make([]byte, curve25519.ScalarSize)
 	if _, err := io.ReadFull(kdf, secretKey); err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
@@ -33,12 +35,12 @@ func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 
 // X25519IdentityFromPassword derives an age identity from a password using Argon2id, with strong default parameters.
 func X25519IdentityFromPassword(password, salt []byte) (*age.X25519Identity, error) {
-	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, curve25519.ScalarSize))
+	return X25519IdentityFromPasswordWithParameters(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 }
 
 // X25519IdentityFromPasswordWithParameters derives an age identity from a password, with custom Argon2id parameters.
 func X25519IdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.X25519Identity, error) {
-	return newX25519IdentityFromScalar(argon2.IDKey(password, salt, argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
+	return newX25519IdentityFromScalar(argon2.IDKey(password, saltWithLabel(salt), argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
 }
 
 // newX25519IdentityFromScalar returns a new X25519Identity from a raw Curve25519 scalar.
@@ -57,4 +59,12 @@ func newX25519IdentityFromScalar(secretKey []byte) (*age.X25519Identity, error) 
 		return nil, fmt.Errorf("failed to bech32 encode secret key: %w", err)
 	}
 	return age.ParseX25519Identity(strings.ToUpper(s))
+}
+
+// saltWithLabel appends the bound kdfLabel to the provided salt.
+func saltWithLabel(salt []byte) []byte {
+	s := make([]byte, 0, len(salt)+len(kdfLabel))
+	s = append(s, salt...)
+	s = append(s, []byte(kdfLabel)...)
+	return s
 }
