@@ -158,7 +158,7 @@ func FuzzSaltWithLabel(f *testing.F) {
 	f.Fuzz(func(t *testing.T, salt []byte) {
 		swl := saltWithLabel(salt)
 		if !slices.Equal(swl, append(salt, []byte(kdfLabel)...)) {
-			t.Errorf("saltWithLabel has invalid value: %v", swl)
+			t.Fatalf("saltWithLabel has invalid value: %v", swl)
 		}
 	})
 }
@@ -187,11 +187,11 @@ func FuzzX25519IdentityFromKey(f *testing.F) {
 	f.Fuzz(func(t *testing.T, key, salt []byte) {
 		id, err := X25519IdentityFromKey(key, salt)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		id2, err := X25519IdentityFromKey(key, salt)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		testIdentityEquality(t, id, id2)
 	})
@@ -221,11 +221,11 @@ func FuzzX25519IdentityFromPasswordWithParameters(f *testing.F) {
 	f.Fuzz(func(t *testing.T, password, salt []byte) {
 		id, err := X25519IdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		id2, err := X25519IdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
 		if err != nil {
-			t.Errorf("failed to create age identity: %v", err)
+			t.Fatalf("failed to create age identity: %v", err)
 		}
 		testIdentityEquality(t, id, id2)
 	})
@@ -233,33 +233,33 @@ func FuzzX25519IdentityFromPasswordWithParameters(f *testing.F) {
 
 func testIdentityEquality(t *testing.T, id, id2 *age.X25519Identity) {
 	if id.String() != id2.String() {
-		t.Errorf("private identities do not match")
+		t.Fatalf("private identities do not match")
 	}
 	if id.Recipient().String() != id2.Recipient().String() {
-		t.Errorf("public recipients do not match")
+		t.Fatalf("public recipients do not match")
 	}
 
 	out := &bytes.Buffer{}
 	in, err := age.Encrypt(out, id.Recipient())
 	if err != nil {
-		t.Errorf("failed to init age encryption: %v", err)
+		t.Fatalf("failed to init age encryption: %v", err)
 	}
 	if _, err = in.Write([]byte("hello")); err != nil {
-		t.Errorf("failed to write plaintext to encrypt writer: %v", err)
+		t.Fatalf("failed to write plaintext to encrypt writer: %v", err)
 	}
 	if err := in.Close(); err != nil {
-		t.Errorf("failed to close encrypt writer: %v", err)
+		t.Fatalf("failed to close encrypt writer: %v", err)
 	}
 
 	decrypted, err := age.Decrypt(out, id2)
 	if err != nil {
-		t.Errorf("failed to init age decryption: %v", err)
+		t.Fatalf("failed to init age decryption: %v", err)
 	}
 	decryptedData, err := io.ReadAll(decrypted)
 	if err != nil {
-		t.Errorf("failed to read plaintext from decrypt reader: %v", err)
+		t.Fatalf("failed to read plaintext from decrypt reader: %v", err)
 	}
 	if string(decryptedData) != "hello" {
-		t.Errorf("plaintext mismatch! expected 'hello', got '%s'", decryptedData)
+		t.Fatalf("plaintext mismatch! expected 'hello', got '%s'", decryptedData)
 	}
 }
