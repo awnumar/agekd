@@ -8,6 +8,8 @@ This package **does not** provide a CLI. If you need that functionality, check o
 
 See the upstream `age` [documentation](https://pkg.go.dev/filippo.io/age) for further guidance on working with `age` identities and recipients.
 
+### **This package is currently pre-v1 and is therefore subject to breaking changes.**
+
 ## Installation
 
 Inside your project folder, run:
