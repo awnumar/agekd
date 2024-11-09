@@ -1,0 +1,32 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+    - uses: actions/setup-go@v5
+      with:
+        go-version: 'stable'
+        check-latest: true
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -race -v ./...
+    
+    - name: Benchmark
+      run: go test -bench=. -run=XXX -benchmem -v ./...
+
+    - name: Fuzz
+      run: go test -fuzz=. -run=XXX -fuzztime 1m .
