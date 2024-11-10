@@ -45,7 +45,7 @@ identity, err := agekd.X25519IdentityFromKey(key, []byte("hello"))
 To generate an age identity from a password:
 
 ```go
-identity, err := agekd.X25519IdentityFromPassword(key, nil)
+identity, err := agekd.X25519IdentityFromPassword(password, nil)
 ```
 
 The default Argon2id parameters are:
@@ -59,7 +59,7 @@ DefaultArgon2idThreads uint8  = 8
 which takes ~3s per hash on an AMD 5800X3D 8-Core CPU. You can select your own parameters with:
 
 ```go
-identity, err := agekd.X25519IdentityFromPasswordWithParameters(key, nil, time, memory, threads)
+identity, err := agekd.X25519IdentityFromPasswordWithParameters(password, nil, time, memory, threads)
 ```
 
 For guidance on Argon2id parameter selection, refer to [rfc9106](https://www.rfc-editor.org/rfc/rfc9106.html#name-parameter-choice).
