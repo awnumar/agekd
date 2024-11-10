@@ -55,10 +55,10 @@ func TestX25519IdentityFromKey(t *testing.T) {
 			t.Fatalf("failed to create age identity: %v", err)
 		}
 		if id.String() != c.expID {
-			t.Fatalf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
 		}
 		if id.Recipient().String() != c.expRcp {
-			t.Fatalf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
 		}
 	}
 }
@@ -73,32 +73,32 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 		{
 			key:    []byte{},
 			salt:   []byte{},
-			expID:  "AGE-SECRET-KEY-1UMXWX6E0QA8FMSNF3UL5X3XZYZEEF4F2LREVDXMKE5AUHC2VUFUQFNNP4W",
-			expRcp: "age1hscrfgq902pphj5ud079legdfsrm0rnm0qm6aednvadsqe86nypsd8e733",
+			expID:  "AGE-SECRET-KEY-1XXCW4ETUT4MSM92U4HG54ULW2E44ZQQSPUJAN4HUDZLHA70GS3RQL7TCTC",
+			expRcp: "age12c2ewvhx08mjf6d3hs5d7afqv7w36mddfspe69dzam4fu2g04vnsd0t96t",
 		},
 		{
 			key:    nil,
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-1UMXWX6E0QA8FMSNF3UL5X3XZYZEEF4F2LREVDXMKE5AUHC2VUFUQFNNP4W",
-			expRcp: "age1hscrfgq902pphj5ud079legdfsrm0rnm0qm6aednvadsqe86nypsd8e733",
+			expID:  "AGE-SECRET-KEY-1XXCW4ETUT4MSM92U4HG54ULW2E44ZQQSPUJAN4HUDZLHA70GS3RQL7TCTC",
+			expRcp: "age12c2ewvhx08mjf6d3hs5d7afqv7w36mddfspe69dzam4fu2g04vnsd0t96t",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-14ZKXYZN0Q3GW34EFALJC9PF00VWW30YRSESQ92HSQHV6JK4S3ASQQ56X9Q",
-			expRcp: "age1rp37sglsdesggn5lux9gcvc54gqw67aq87prpzjyeg2l9j0rtc0sd3k4xr",
+			expID:  "AGE-SECRET-KEY-1K7WJRLRK7K5P5V9W5G97TJMHJPNSKKA5AC24P0CTGZ95F5F4SUVSRSL68A",
+			expRcp: "age1lczf85u63y4r66638spjwgkrjv6smk2zejxwuzfy39sunvgqkaqqss52s0",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   []byte("bye"),
-			expID:  "AGE-SECRET-KEY-10Z3TGEXESCSS28FUJ9SKWHXFCU99937S5PCU59HZPTH3JDZA7DNSYA02TG",
-			expRcp: "age1ac25d96m7ddkldk0rnlnays373r7vk2u8jwxpgwk7c3qfjd9f93sduwhp7",
+			expID:  "AGE-SECRET-KEY-10UGH6AS5STGZ8XMT8AVD2HF25A2K429PE45N66H5CZ3ADCLFD6JQL2G4VR",
+			expRcp: "age12cq55rlgnwu6arszt6nde2uawsm8enndeuey2ku89vn5tp6mvd0sxf86xw",
 		},
 		{
 			key:    []byte{125, 231, 97, 121, 25, 36, 248, 109, 22, 245, 220, 7, 19, 151, 123, 246, 40, 27, 194, 4, 133, 222, 108, 216, 32, 162, 132, 16, 142, 151, 22, 104},
 			salt:   []byte{62, 98, 62, 226, 73, 49, 93, 5, 172, 234, 232, 145, 139, 78, 172, 4, 139, 156, 74, 57, 215, 32, 72, 216, 17, 74, 220, 250, 146, 3, 190, 254},
-			expID:  "AGE-SECRET-KEY-1DWDLKXA55WS5S4JTU9H3T3XQ5JQ55L3KQWQX6PXE9W4DRN7SZSFSCNGE7G",
-			expRcp: "age1uwxxynmx5wh5weh444jyk4p7dcqyrlft08v0ltvxlnq9ds487azqdujjdr",
+			expID:  "AGE-SECRET-KEY-1M4MPJEN0HX2XA8TSCS7LP03NG5KWKELEEKZSCSCXLGZKYRZVNK8STKWQMQ",
+			expRcp: "age1m5mpdh9jact30wcfujykt7fad405vhzwdjcx2nrxj3ljh8n2kcgs9e92fs",
 		},
 	}
 	for _, c := range testCases {
@@ -107,10 +107,10 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 			t.Fatalf("failed to create age identity: %v", err)
 		}
 		if id.String() != c.expID {
-			t.Fatalf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
 		}
 		if id.Recipient().String() != c.expRcp {
-			t.Fatalf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
 		}
 		id2, err := X25519IdentityFromPasswordWithParameters(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 		if err != nil {

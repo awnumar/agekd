@@ -51,12 +51,12 @@ identity, err := agekd.X25519IdentityFromPassword(key, nil)
 The default Argon2id parameters are:
 
 ```go
-DefaultArgon2idTime    uint32 = 8
+DefaultArgon2idTime    uint32 = 4
 DefaultArgon2idMemory  uint32 = 6291456 // KiB = 6 GiB
 DefaultArgon2idThreads uint8  = 8
 ```
 
-which translate to ~6s per hash on an AMD 5800X3D 8-Core CPU. You can select your own parameters with:
+which takes ~3s per hash on an AMD 5800X3D 8-Core CPU. You can select your own parameters with:
 
 ```go
 identity, err := agekd.X25519IdentityFromPasswordWithParameters(key, nil, time, memory, threads)

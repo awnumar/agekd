@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DefaultArgon2idTime    uint32 = 8
+	DefaultArgon2idTime    uint32 = 4
 	DefaultArgon2idMemory  uint32 = 6291456 // KiB = 6 GiB
 	DefaultArgon2idThreads uint8  = 8
 
