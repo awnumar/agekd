@@ -73,32 +73,32 @@ func TestX25519IdentityFromPassword(t *testing.T) {
 		{
 			key:    []byte{},
 			salt:   []byte{},
-			expID:  "AGE-SECRET-KEY-1P4J8RZE9G8EQ559XYDX024NV57DMXH0YAJUFJLH87FVNFXAWPUVQVGGSK8",
-			expRcp: "age15mehx5d4xvxfmfygc8ndx5acvy294d5j77dlwfc7ylty8hdm5uws8gfam5",
+			expID:  "AGE-SECRET-KEY-1UMXWX6E0QA8FMSNF3UL5X3XZYZEEF4F2LREVDXMKE5AUHC2VUFUQFNNP4W",
+			expRcp: "age1hscrfgq902pphj5ud079legdfsrm0rnm0qm6aednvadsqe86nypsd8e733",
 		},
 		{
 			key:    nil,
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-1P4J8RZE9G8EQ559XYDX024NV57DMXH0YAJUFJLH87FVNFXAWPUVQVGGSK8",
-			expRcp: "age15mehx5d4xvxfmfygc8ndx5acvy294d5j77dlwfc7ylty8hdm5uws8gfam5",
+			expID:  "AGE-SECRET-KEY-1UMXWX6E0QA8FMSNF3UL5X3XZYZEEF4F2LREVDXMKE5AUHC2VUFUQFNNP4W",
+			expRcp: "age1hscrfgq902pphj5ud079legdfsrm0rnm0qm6aednvadsqe86nypsd8e733",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   nil,
-			expID:  "AGE-SECRET-KEY-1CW8DLMQEKF4E7KZ7DS4EZFHRRXKRYU0LM3JG4DZCYAC8W34DLLXQ84HR66",
-			expRcp: "age1vp667dwd3m49hvg2dzczgnj4ht6cx9rzualmlgkycglh70z4uexqp33cnm",
+			expID:  "AGE-SECRET-KEY-14ZKXYZN0Q3GW34EFALJC9PF00VWW30YRSESQ92HSQHV6JK4S3ASQQ56X9Q",
+			expRcp: "age1rp37sglsdesggn5lux9gcvc54gqw67aq87prpzjyeg2l9j0rtc0sd3k4xr",
 		},
 		{
 			key:    []byte("hello"),
 			salt:   []byte("bye"),
-			expID:  "AGE-SECRET-KEY-1SR0LU44D700Q7SNH9XQX4V626N69VJZ275NZ6R98NRQYKRAKUYNS453D3Y",
-			expRcp: "age1stylxkt70m49q2n0vxarxqx9ncmvu5zswuddja6wfet9r8me0c5s225387",
+			expID:  "AGE-SECRET-KEY-10Z3TGEXESCSS28FUJ9SKWHXFCU99937S5PCU59HZPTH3JDZA7DNSYA02TG",
+			expRcp: "age1ac25d96m7ddkldk0rnlnays373r7vk2u8jwxpgwk7c3qfjd9f93sduwhp7",
 		},
 		{
 			key:    []byte{125, 231, 97, 121, 25, 36, 248, 109, 22, 245, 220, 7, 19, 151, 123, 246, 40, 27, 194, 4, 133, 222, 108, 216, 32, 162, 132, 16, 142, 151, 22, 104},
 			salt:   []byte{62, 98, 62, 226, 73, 49, 93, 5, 172, 234, 232, 145, 139, 78, 172, 4, 139, 156, 74, 57, 215, 32, 72, 216, 17, 74, 220, 250, 146, 3, 190, 254},
-			expID:  "AGE-SECRET-KEY-1SK248UN253DWHNRQQR63A0C652V387ER95A5Q50F5HZEW8EHTR7STWH8EN",
-			expRcp: "age12rxldhqtm073ee845rgvencv79dyy4aykd4qc7a7tnex8m33jvqq494kpa",
+			expID:  "AGE-SECRET-KEY-1DWDLKXA55WS5S4JTU9H3T3XQ5JQ55L3KQWQX6PXE9W4DRN7SZSFSCNGE7G",
+			expRcp: "age1uwxxynmx5wh5weh444jyk4p7dcqyrlft08v0ltvxlnq9ds487azqdujjdr",
 		},
 	}
 	for _, c := range testCases {
