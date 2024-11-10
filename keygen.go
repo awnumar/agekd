@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	DefaultArgon2idTime    uint32 = 8
-	DefaultArgon2idMemory  uint32 = 500000 // KiB = 512 MB
+	DefaultArgon2idTime    uint32 = 4
+	DefaultArgon2idMemory  uint32 = 6291456 // KiB = 6 GiB
 	DefaultArgon2idThreads uint8  = 8
 
 	kdfLabel = "github.com/awnumar/agekd"
