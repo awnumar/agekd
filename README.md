@@ -8,12 +8,10 @@ This package **does not** provide a CLI. If you need that functionality, check o
 
 See the upstream `age` [documentation](https://pkg.go.dev/filippo.io/age) for further guidance on working with `age` identities and recipients.
 
-### **This package is currently pre-v1 and is therefore subject to breaking changes.**
-
 ## When would you use this?
 
 - You already have key material and want to use it for age operations.
-- Your execution environment has the capability to generate cryptographically secure keys, but it prevents your program from persisting custom keys (such as a Kubernetes pod using Hashicorp Vault).
+- Your execution environment has the capability to generate cryptographically secure keys, but it prevents your program from persisting custom keys.
 - You want to programmatically derive age identities from passwords.
 
 ## Installation
