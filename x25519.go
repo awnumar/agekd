@@ -14,15 +14,7 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
-const (
-	DefaultArgon2idTime    uint32 = 4
-	DefaultArgon2idMemory  uint32 = 6291456 // KiB = 6 GiB
-	DefaultArgon2idThreads uint8  = 8
-
-	kdfLabel = "github.com/awnumar/agekd"
-)
-
-// X25519IdentityFromKey derives an age identity from a high-entropy key. Callers are responsible for
+// X25519IdentityFromKey derives an age X25519 identity from a high-entropy key. Callers are responsible for
 // ensuring that the provided key is suitably generated, e.g. by reading it from crypto/rand.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabel))
@@ -33,12 +25,12 @@ func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 	return newX25519IdentityFromScalar(secretKey)
 }
 
-// X25519IdentityFromPassword derives an age identity from a password using Argon2id, with strong default parameters.
+// X25519IdentityFromPassword derives an age X25519 identity from a password using Argon2id, with strong default parameters.
 func X25519IdentityFromPassword(password, salt []byte) (*age.X25519Identity, error) {
 	return X25519IdentityFromPasswordWithParameters(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 }
 
-// X25519IdentityFromPasswordWithParameters derives an age identity from a password, with custom Argon2id parameters.
+// X25519IdentityFromPasswordWithParameters derives an age X25519 identity from a password, with custom Argon2id parameters.
 func X25519IdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.X25519Identity, error) {
 	return newX25519IdentityFromScalar(argon2.IDKey(password, saltWithLabel(salt), argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
 }
