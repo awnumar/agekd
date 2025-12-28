@@ -17,7 +17,7 @@ import (
 func HybridIdentityFromKey(key, salt []byte) (*age.HybridIdentity, error) {
 	uniformSalt := sha256.Sum256(salt)
 	kdf := hkdf.New(sha256.New, key, uniformSalt[:], []byte(kdfLabelHybrid))
-	secretKey := make([]byte, 32)
+	secretKey := make([]byte, hybridSecretKeySize)
 	if _, err := io.ReadFull(kdf, secretKey); err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
 	}
@@ -31,7 +31,7 @@ func HybridIdentityFromPassword(password, salt []byte) (*age.HybridIdentity, err
 
 // HybridIdentityFromPasswordWithParameters derives a hybrid age MLKEM768X25519 identity from a password, with custom Argon2id parameters.
 func HybridIdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.HybridIdentity, error) {
-	return HybridIdentityFromKey(argon2.IDKey(password, salt, argon2idTime, argon2idMemory, argon2idThreads, 32), nil)
+	return HybridIdentityFromKey(argon2.IDKey(password, salt, argon2idTime, argon2idMemory, argon2idThreads, hybridSecretKeySize), nil)
 }
 
 // newHybridIdentityFromScalar returns a new HybridIdentity from a raw 32 byte secret key.
@@ -44,7 +44,7 @@ func HybridIdentityFromPasswordWithParameters(password, salt []byte, argon2idTim
 //   - https://github.com/FiloSottile/age/blob/v1.3.1/pq.go
 //   - https://github.com/FiloSottile/hpke/blob/v0.4.0/pq.go
 func newHybridIdentityFromSecretKey(secretKey []byte) (*age.HybridIdentity, error) {
-	if len(secretKey) != 32 {
+	if len(secretKey) != hybridSecretKeySize {
 		return nil, fmt.Errorf("invalid hybrid secret key")
 	}
 	privateKey, err := hpke.MLKEM768X25519().NewPrivateKey(secretKey)

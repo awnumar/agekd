@@ -114,7 +114,7 @@ func TestHybridIdentityFromPassword(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to create age identity: %v", err)
 		}
-		id3, err := HybridIdentityFromKey(argon2.IDKey(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, 32), nil)
+		id3, err := HybridIdentityFromKey(argon2.IDKey(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, hybridSecretKeySize), nil)
 		if err != nil {
 			t.Fatalf("failed to create age identity: %v", err)
 		}

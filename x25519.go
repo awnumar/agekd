@@ -19,7 +19,7 @@ import (
 //
 // For post-quantum security, use HybridIdentityFromKey instead.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
-	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabel))
+	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabelX25519))
 	secretKey := make([]byte, curve25519.ScalarSize)
 	if _, err := io.ReadFull(kdf, secretKey); err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
@@ -61,8 +61,8 @@ func newX25519IdentityFromScalar(secretKey []byte) (*age.X25519Identity, error) 
 
 // saltWithLabel appends the bound kdfLabel to the provided salt.
 func saltWithLabel(salt []byte) []byte {
-	s := make([]byte, 0, len(salt)+len(kdfLabel))
+	s := make([]byte, 0, len(salt)+len(kdfLabelX25519))
 	s = append(s, salt...)
-	s = append(s, kdfLabel...)
+	s = append(s, kdfLabelX25519...)
 	return s
 }
