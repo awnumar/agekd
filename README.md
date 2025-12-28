@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/awnumar/agekd.svg)](https://pkg.go.dev/github.com/awnumar/agekd) [![Go workflow](https://github.com/awnumar/agekd/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/awnumar/agekd/actions/workflows/go.yml)
 
-AgeKD is a Go library that can be used to derive [`age`](https://github.com/FiloSottile/age) X25519 identities deterministically from keys or passwords.
+AgeKD is a Go library that can be used to derive [`age`](https://github.com/FiloSottile/age) identities deterministically from keys or passwords.
 
 This package **does not** provide a CLI. If you need that functionality, check out [age-keygen-deterministic](https://github.com/keisentraut/age-keygen-deterministic).
 
@@ -27,7 +27,15 @@ go get github.com/awnumar/agekd
 To generate an age identity from a high-entropy key:
 
 ```go
-identity, err := agekd.X25519IdentityFromKey(key, nil)
+// Post-quantum secure, based on ML-KEM 768 with X25519 (X-Wing: https://eprint.iacr.org/2024/039)
+identity, err := agekd.HybridIdentityFromKey(key, nil)
+if err != nil {
+    // handle error
+}
+_ = identity // *age.HybridIdentity
+
+// Not post-quantum secure, based on X25519
+identity, err = agekd.X25519IdentityFromKey(key, nil)
 if err != nil {
     // handle error
 }
@@ -37,13 +45,13 @@ _ = identity // *age.X25519Identity
 To generate multiple age identities from a single key, specify a salt:
 
 ```go
-identity, err := agekd.X25519IdentityFromKey(key, []byte("hello"))
+identity, err := agekd.HybridIdentityFromKey(key, []byte("hello"))
 ```
 
 To generate an age identity from a password:
 
 ```go
-identity, err := agekd.X25519IdentityFromPassword(password, nil)
+identity, err := agekd.HybridIdentityFromPassword(password, nil)
 ```
 
 The default Argon2id parameters are:
@@ -57,7 +65,7 @@ DefaultArgon2idThreads uint8  = 8
 which takes ~3s per hash on an AMD 5800X3D 8-Core CPU. You can select your own parameters with:
 
 ```go
-identity, err := agekd.X25519IdentityFromPasswordWithParameters(password, nil, time, memory, threads)
+identity, err := agekd.HybridIdentityFromPasswordWithParameters(password, nil, time, memory, threads)
 ```
 
 For guidance on Argon2id parameter selection, refer to [rfc9106](https://www.rfc-editor.org/rfc/rfc9106.html#name-parameter-choice).
