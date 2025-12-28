@@ -16,6 +16,8 @@ import (
 
 // X25519IdentityFromKey derives an age X25519 identity from a high-entropy key. Callers are responsible for
 // ensuring that the provided key is suitably generated, e.g. by reading it from crypto/rand.
+//
+// For post-quantum security, use HybridIdentityFromKey instead.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabel))
 	secretKey := make([]byte, curve25519.ScalarSize)
@@ -26,11 +28,15 @@ func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 }
 
 // X25519IdentityFromPassword derives an age X25519 identity from a password using Argon2id, with strong default parameters.
+//
+// For post-quantum security, use HybridIdentityFromPassword instead.
 func X25519IdentityFromPassword(password, salt []byte) (*age.X25519Identity, error) {
 	return X25519IdentityFromPasswordWithParameters(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 }
 
 // X25519IdentityFromPasswordWithParameters derives an age X25519 identity from a password, with custom Argon2id parameters.
+//
+// For post-quantum security, use HybridIdentityFromPasswordWithParameters instead.
 func X25519IdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.X25519Identity, error) {
 	return newX25519IdentityFromScalar(argon2.IDKey(password, saltWithLabel(salt), argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
 }
