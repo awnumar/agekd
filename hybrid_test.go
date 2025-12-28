@@ -1,0 +1,237 @@
+package agekd
+
+import (
+	"bytes"
+	"io"
+	"testing"
+
+	"filippo.io/age"
+	"golang.org/x/crypto/argon2"
+)
+
+func TestHybridIdentityFromKey(t *testing.T) {
+	testCases := []struct {
+		key    []byte
+		salt   []byte
+		expID  string
+		expRcp string
+	}{
+		{
+			key:    []byte{},
+			salt:   []byte{},
+			expID:  "AGE-SECRET-KEY-PQ-1N0TK5J445CYGYYFLQ4TMY6JSUM7RQHTKQWV5CZ8XJTJC3D8N4NWSZNHWPP",
+			expRcp: "age1pq1ce7gvcvhsv0s4zcqg57pavnqqrwpncnnzcugchu8n96qcnyqgsfx472symglxmtwzpqqfcpzkgrv8r8j8srf2anm29h8jfvhghszyg2pdjs79flyw3q5tfemky2g7y34vq9qey7cmqqde96ng8fklhjfkhjsjlfsuscqaqszuqqxaujk8044yzu883e87wqy3u2hc3nszxgsrsfuxqqefnxd9tyctueywrkuegnv99lg3j2lznuskudecdrzh93ljxsv6vcgckr40vwkps5jglpl74s07qntxwjz3ylx8snu035df9dehfy6nskym8up29epjxm8kwavckus5wzcuykm4t88evccfqr6am9q3r3rt4tnjgj4enxsqwpqhd2247t3hejfjt3xyqun0qcxy7v70pzsdz5yps240t2e3fydlfdgk3m9gl6u8c5xrvmdx8xxc6afmqacrj28fqe3fpegts3d55mfreut86sqw430jm9hrddrdyuvnjget78gg39t5pvw2pfsajqljyp6pyegxls9ye3dkt8x5gzwjd4mqhd9yxdntqrxkvea86c057z9jndppx80cj5u4qsrm6vtppe9kuuukrht8sqees44x44fkytx5ux5cdlev4c4czavcdq5h66juqs4r68239aucxar9ussenut7jzkwasa2e2l2w5vlfxz73px7uxxt7gut20n62slpk4r95q5vl7t82cdzrfjt9psujzvz8jhznzrf4s5txk2kfqt5l96kky6u3rq489xhqx457s8rsyapvmql4uhc4lzsuupa8prysgeaj9329cc58lp49046g60ndtxdc5n3rdh2fuusn9g9sqtpwexq6ze2efhn8exzzjp8pm64at7e0xyqd0gkqfc433a9jf74as79fueweend0293d7vvx2ha57y92uuspu3nnqzwpkxegtmcewyn8pz08gucgthk6vmjfqdc5d0r0d6aj88jveh89xgewud8jggth5ez7r2k64p8jpy9dyua39ygjkq7mjvpaq0qe8r0jjhfjr4y4utnsnxhapj3jmpz23z5xeyjwy4jsvh4e4h28hrw9uvrvqnk5fr2u4rtn6td3k0hdzmaw3pdserc6mv8ugeq05szpl27vwg6eaf70hv9d7yjmkmqdxk49m737jrel4t0rarjw9k6uq60cgz72kfx9sm2q6dcrzas79e3q2pj2y8pdjcc0l45agz7z3v75rk6g63ue9hpzqvw89ju3yanatkk2nql9hsyqgtyte9afzeup3q0uu47lrsg58m5ggxkj0tx892f9psyrgqpy73z93q0gqchjj03c2v82x5duh2005lfgwelymqtgvtp8lfp298hvlfxw8kq2uakd54y9d9tltax683pxynz45gawu6w69zpkgxsvac5cjnwc27nte3k284rhdavx066g49e36apyf6x33s4ylpyerx4q840krvly7tfmw60zn9n39eut9gtzpesy5fk84xycwxy32eypyelkaezvcmnckvw5lkvj0vu2s4up4rg93qus34k580se8ea3g649c8yem6d6mu5racttdahy43p95vqkmej7xjtdqfz4fpkpj05tpdaf7try4ryf68sg5etq8m02t4qpjktkquy6g4z038mjztuzws5qtxzzk6j8a3v3uvtd8y0v4asqqgs59jszs0vqugeftfjkxrrw5vegzenz9kdwetn2x03ygepfxxpzvqjum8gcd5ccm55u2s4gpq8faycmn0wvma4fg4hcn5022f0pwh9ec7j2kzrv86pfpk45df83739lu3jcs0kxw6qnmcl6zjlgn70cy369tkpgdk06gqqhrzcw27ngjnkuthn2r4jfuz7xtu5znwvhkv9pnlvq0s7lxfldmzsrdxk6e0tm2kdzwxt5xh2uw59skw",
+		},
+		{
+			key:    nil,
+			salt:   nil,
+			expID:  "AGE-SECRET-KEY-PQ-1N0TK5J445CYGYYFLQ4TMY6JSUM7RQHTKQWV5CZ8XJTJC3D8N4NWSZNHWPP",
+			expRcp: "age1pq1ce7gvcvhsv0s4zcqg57pavnqqrwpncnnzcugchu8n96qcnyqgsfx472symglxmtwzpqqfcpzkgrv8r8j8srf2anm29h8jfvhghszyg2pdjs79flyw3q5tfemky2g7y34vq9qey7cmqqde96ng8fklhjfkhjsjlfsuscqaqszuqqxaujk8044yzu883e87wqy3u2hc3nszxgsrsfuxqqefnxd9tyctueywrkuegnv99lg3j2lznuskudecdrzh93ljxsv6vcgckr40vwkps5jglpl74s07qntxwjz3ylx8snu035df9dehfy6nskym8up29epjxm8kwavckus5wzcuykm4t88evccfqr6am9q3r3rt4tnjgj4enxsqwpqhd2247t3hejfjt3xyqun0qcxy7v70pzsdz5yps240t2e3fydlfdgk3m9gl6u8c5xrvmdx8xxc6afmqacrj28fqe3fpegts3d55mfreut86sqw430jm9hrddrdyuvnjget78gg39t5pvw2pfsajqljyp6pyegxls9ye3dkt8x5gzwjd4mqhd9yxdntqrxkvea86c057z9jndppx80cj5u4qsrm6vtppe9kuuukrht8sqees44x44fkytx5ux5cdlev4c4czavcdq5h66juqs4r68239aucxar9ussenut7jzkwasa2e2l2w5vlfxz73px7uxxt7gut20n62slpk4r95q5vl7t82cdzrfjt9psujzvz8jhznzrf4s5txk2kfqt5l96kky6u3rq489xhqx457s8rsyapvmql4uhc4lzsuupa8prysgeaj9329cc58lp49046g60ndtxdc5n3rdh2fuusn9g9sqtpwexq6ze2efhn8exzzjp8pm64at7e0xyqd0gkqfc433a9jf74as79fueweend0293d7vvx2ha57y92uuspu3nnqzwpkxegtmcewyn8pz08gucgthk6vmjfqdc5d0r0d6aj88jveh89xgewud8jggth5ez7r2k64p8jpy9dyua39ygjkq7mjvpaq0qe8r0jjhfjr4y4utnsnxhapj3jmpz23z5xeyjwy4jsvh4e4h28hrw9uvrvqnk5fr2u4rtn6td3k0hdzmaw3pdserc6mv8ugeq05szpl27vwg6eaf70hv9d7yjmkmqdxk49m737jrel4t0rarjw9k6uq60cgz72kfx9sm2q6dcrzas79e3q2pj2y8pdjcc0l45agz7z3v75rk6g63ue9hpzqvw89ju3yanatkk2nql9hsyqgtyte9afzeup3q0uu47lrsg58m5ggxkj0tx892f9psyrgqpy73z93q0gqchjj03c2v82x5duh2005lfgwelymqtgvtp8lfp298hvlfxw8kq2uakd54y9d9tltax683pxynz45gawu6w69zpkgxsvac5cjnwc27nte3k284rhdavx066g49e36apyf6x33s4ylpyerx4q840krvly7tfmw60zn9n39eut9gtzpesy5fk84xycwxy32eypyelkaezvcmnckvw5lkvj0vu2s4up4rg93qus34k580se8ea3g649c8yem6d6mu5racttdahy43p95vqkmej7xjtdqfz4fpkpj05tpdaf7try4ryf68sg5etq8m02t4qpjktkquy6g4z038mjztuzws5qtxzzk6j8a3v3uvtd8y0v4asqqgs59jszs0vqugeftfjkxrrw5vegzenz9kdwetn2x03ygepfxxpzvqjum8gcd5ccm55u2s4gpq8faycmn0wvma4fg4hcn5022f0pwh9ec7j2kzrv86pfpk45df83739lu3jcs0kxw6qnmcl6zjlgn70cy369tkpgdk06gqqhrzcw27ngjnkuthn2r4jfuz7xtu5znwvhkv9pnlvq0s7lxfldmzsrdxk6e0tm2kdzwxt5xh2uw59skw",
+		},
+		{
+			key:    []byte("hello"),
+			salt:   nil,
+			expID:  "AGE-SECRET-KEY-PQ-1X5QJK74UU4JKWZ8NGFXTDWCNHX5G8VJYKM3573W8FJG5RM3DVNCS9724A6",
+			expRcp: "age1pq1xd95x37t45pxc2ced3ndw9tz2t22f7jt8pl2jj5j2mq0c2z36zgy6s68sc8usg8f56xa7j7tr7d9nzgsjytq0g59pvj6nad956wxchvsxrmls6z95z9kd46y22trlnt8excsn2xyg3h932g735cv7u9nxq0qvxu2cww3ncphn4r3kqv8t8zn55ucmwt50qc794ncvuppd6aadpst9gmtu2yxfsg54djzns87r9jfvztswdy7eyxr944gq6e2ckfgvfwdafp56scfe7xeyfuzcshyudthlzprnqtxpc8fqcqdjm8d75sc0vmm0rvceacxqls2j893rg9wvaevn5z3jtfhg7h09gsp82rj9wtgf79jz58uwrh5zv42xwdnlppe82smryxvsy8kk8njnpu2kznpqqykfmcfewatdx9fzq42suf03pe33etjr9fy2qw5wxycjw2t8strtt698d98dspucjw98fcgmdcurqfy2e8sqgt2559qfyafg7ykmzm6f4h22czplgy30qav7yq8vv2cjnfyc2sllvmxca67u0jr0azhw9fq9y0anytefkyuvx255ntqv4yewfmm3f06q92e7ffn90ernny508qwpp0lgs67zrp98a2z8fhcsjh3fz0h5asgzt4vhp068ehavdhkd24f3wqvsk24aqgq46u9xuc0pf4uqau8ypyhd2f6gzv7seqsyjdmpgac2x5h4tafxjpz2k6gjudtsw35qev43fec9d2evv46ejk4z2r5p8fff6nny4kk58udp2fhfgcn5jtm06hes8k33yee5se6q3792larsslxhcryrruwqvf33p3e9qwq3n0p8c7sxgfn2fqxgceg8fnpned8jpmxc7uuqg42exc4g49gyc8x4rggppmtjvfxqerkj4xx7u6c4hqnzmekqxv06eym86fhzngmn8jhzc8naxed5pmwp04yg0z2sv4e22zxnzycesevvucrevzee0fusv75f2p4z49xner5hpqk94d2wczyhwglrjcnl24m25fc9pm383nkdsw3ggsy5ptvj4lkf3k2hp2sf9v7vpqx7czyh56qwkdxs9um4y66r74c7hjt70dqzhw3wuacave5jfj9pmnqn8v6vmr68scajegmfgr7944yufs506trg32mmwph975vtfrjy9y4xpxkk4ufhql5dvgzte4t77dt8xy0epd90y4dm7tswtsggntk3kw8evss8w8247pryeayxztse07kny2glqp4daa2rfgnv8fs225jr286g9u0rfe562prxjxpxpz5cqwz4xda3pmha2j2jrlzta7yw2zs65hc7edr7x4v6jczde4fssgztye0wmpn262vdq6885tevcq87tzyl5c0t7kv6vgyq0tm573adfn0tptxe7jzw04es4aagsjktyglaa28rtne8y5ftsnjkkclxusdha5zudcyfxdpeqvfn2mn59nmmmxf2tsphpwhjjc9gh8tqsgu45msag4jmwvczajgga77h0q22yskuxzqxtr4jmmm03zag69mlcjvchm4zhsfks0se8mea9z0jkpx4gdmp78q8uw7ycznskqumdnlnaz5rskpp7uz3v3yu9rh2udlxf4xuxjk3m4ujafv2hyrl9tdfp32cfn6w3mn0fa3wv026j60hs9c5759yz9ncy9jw76gwpczdfvkqhsp262h8xd39tqwmgx0h23vhsaewhevx8j9q27xwatf39mg7f2h47r9t97a5q3pajangp44quhxsszaxxpj09pqu9988zsgpu93nazud0sfv52ruhpnm59gpy8gz08tqkh5wjf39e22z0ycw9v5qsdrjhpauhra8a2qa99p84wxlrcnsr45ek7dspdvmzzreqsq6kepfmcycnpkdu0xsal84dyf7avzjy8tsr3t0repfgatxxlp",
+		},
+		{
+			key:    []byte("hello"),
+			salt:   []byte("bye"),
+			expID:  "AGE-SECRET-KEY-PQ-1UDXXVTAYDQZTLVYFC3RSUEVXP3QVC7TPU3HJHG7DZ0RQPKHSTTWQFJNEFJ",
+			expRcp: "age1pq106pca3xxjyxcjq2ft3maf2drxngzdcfmd08zenpzhg9yqyy4vzd4jwlv3ky8hs00h2tnx4xfpkd4j3vpvaswtrnv0vp8jjrewvge8qpfkvnsyvyghzf3nqvm3s26vyw9sv4c500uquwm8s2rkzz63ge5cgv0tp0wzpxjfk6vplap4clm4peqrpjladujedthk628uxjsrxa9jpcxg6768ypccqqczxq4x7c7rvthucyuw8zdty23xwrkq9qjcrtl65py8dg4yfm5zqmpxnam0wraj950s0qf7yyquehme0gw8p44gajhuerqn0ymdvynrerfty2qd32kdrrxgxmrwwev5x5q9z7w4sgd8y90lwf9v2hjw6982qef2d4v04yv2f5x34sqqlt6xk8v7lp0mue48d69js2kw4xm0xaqvf2wz8p7lavy2wgs5g4kwhtv772k7vmsl4np5w0y07jwg4p3ndqcl3c6k93n8exhge95qqk0qazsw5qrag6kk8y8esep030fyvfla3d3y4z3gp23f6ukr3wxjtpcyen5assk60yj0y7etvjwljq5ux3mw0fhun7m4jekvc6jtw42ay7q9lm88nz6849wnsjm3t8wyegzn4syz3yze3j3x53xsayx954mng2ew3qqs2qtjytqhffzlq4h84fz3ad2t4zq3wfwdd3h49ru3ezqt85n904dxse90wkxcvrcx6n2rdm8zchlj672yuv246kz88nf0pf3qysfgpnn5zk4cgwvq6pj7q8exmnkc8hnmyuw0y5m0ed8a6jqnqd5x4jpfjtmac2s3uf88aafdcy3n3nuhystnfzh92er6lfk3f9pssymq496k7surljnpez2jx6y5n4ljwqal9rxr9p6crmsspc9wlgpxjqrl2qzl3u5lcfvt94tvudh22v8wc3ke99f6ke8z0dph9cwtg4g5pn3r4r30n8tv88ep2uvfzl3hgtvdjevxun5g5ja2cvhpsq57kwrzs4s7ath9m72evzp8dpltegnyfg9d63vz2f5c8f065zf8de85aehqm5s4uemjgtusfnf0ycznv5s2uf2tcqvqegwjsg0y0xd9hekepgf95vk9vr3q463yev24y34ujqmrfgqva0tjx8d32qh3mrsnxsqxsacpy39dwkt30xzzjdg3wu4yjtly66224k7c7596kmz40ycwjc5yly0tdux2kgsls4rke3neqty5mhulnp5za70rsjztzk6zgefc9e6svpvt2ye8wpc3ysn4z90h32lfz5zdwxr3qgx6xxux80958nufzu294adnqc5sgdcwrw7kwzvddzmd2mlvadz5r2cvxa7j8aav888vpecm3kgf8xrgr96ffh2fyd2l72589ucxj7y2g0426ugsdkrt9r4gn6kek94ex5rsc7gjcz9rpqqxxs3wljt5ucypq4qv3dqc6pyy6f8afsu0k70zc66hfplesr23sg522uhk05sf3hgm9j63xj8t9a2mne3eqcc2hatq39r85gp4396usxfkgt6s3cvl94nzmpfxz4fhnqmx5trv92c833edqm7eyrm0xduf3wc3yvu2fd7xkuasafn4elgsqwvygkx2yfe6qm9ehuglv2krh6cwxv6tf76mc7086m4fgthrjkxtv357sasl456lvzf76k9czyt4qqpvvnvuzn4wguj4thcncdtylfvz7mr5jngmd79z5myej2n09snwcaman90xsmnsupgqvyv26jvx43u8palxuc6pz44ncfh5h5jzaewcevch0u566u4nt2uwnd2rv2lp7ymcjxpnx0gehm62a8qj406d4ls082akqr27fy3jel5l4nxx9y3mhaqgewswu3vxp0vr37g28ruy7fgu3nwl9sc8xqlhh9nsjm4vrsjjhexnxpezmklf6mgr0s485l86dpp",
+		},
+		{
+			key:    []byte{125, 231, 97, 121, 25, 36, 248, 109, 22, 245, 220, 7, 19, 151, 123, 246, 40, 27, 194, 4, 133, 222, 108, 216, 32, 162, 132, 16, 142, 151, 22, 104},
+			salt:   []byte{62, 98, 62, 226, 73, 49, 93, 5, 172, 234, 232, 145, 139, 78, 172, 4, 139, 156, 74, 57, 215, 32, 72, 216, 17, 74, 220, 250, 146, 3, 190, 254},
+			expID:  "AGE-SECRET-KEY-PQ-10EWK7C8T00VL22WWNUSCUKZ6JWUATKXUKY7KZJQJZCLUA0Y4NTZSXL8PUZ",
+			expRcp: "age1pq1k2uxhzhvy8qxp9reca59rfrvvl6vm8qyzzengyvxsuank4qqredpf6qhznvry88r932spgqutwn85y86d9k2pxym90pk0j60p0jn784v3z3lpj6zhqzk4xvpe73vdx72wxflkpnhws0434eq78vjml0yxdeaqc82fpdt22da3lf5nzhz2sg0fqllxuvw3edjnqqra9v80gglcmuuwyh7pem33y9eay592fzjc7twysrwzucwth63trrvry5k4txhv7xfwsphfgasfczqz6ykhfm2ms6p8qw95kd44m4z42wedg8st3d4chxwelvqruzjwmv4svanhjmhrqc9sswgwapxynw6pxgmfys4mw6xp33xae6mztsfe0rg2u49syfgdganrgdvkr2e8req4v6x9wjat04h5v292jjawcm0sv28rfumdavkugxuqsa042n00d8wjfr0ardpgqlj36a2xgm00r888usg7mvttddmfeh520p0lvarz2asjq2ttprm0varja6tgdh5vjahhzx8dpn9s2t0qpqss9dpuwtkqrktzdrvynr54djq438hzke7yhq5vzxrh2yxyp67ugq205gfzw9z2sxrgffaft4js6y9hfuye6t6um9jccfq0y58x4t08k4t0jjztdy9ju9acsftn3uwq7xtefg470jhkph5qdmjsja7as2jvqdvnsfj3huqq4n863gaqgdjqaprcs8pfktrctv9gakwzeuvmccz7ws45ey3qkq3qy8jfvp06uq3wjn20kkrpgyujv7gyg2vr4ccmukypz7y55ww5prxllq88wa8xq0zjh2ayfhj99xpf3dhcwysaamqna8ypj8yt2d7keg0mkp2fncxyv58tf0ya9qkhv66af2ts5yh5jf32xqmyutcn7ugt3yxhhv9h3qgcnw4xv2t83avctyknqdtkux0kk587fkajqrlykdsu3l3sp2zxsva7aftwd6qxzcp5g4js3cex88s6502yzr03p2xslm820a8gagxun9scp9yzn24sgdmfyhyqerxjk34t5qfytw9nqp8cuwx9p4q27x9q9drjl4y6zarq0a8z45w7k22ne9dxf5gypzmzm7jsf95zcd3fyjyhtk8q0h257hq0xxad3yz0av3d7dv3kn5q3qnh232ya9vzkyk9935p6m5e23h2mg03w6275522cyqejjqru6fv5k7axgpccejyeqgmfupcf9k5mmt547jz7w92hdr7em62jx78q54dpey0yfzqgdvqlmnry03ht32v5nrtmyx046p37u3rx7j4wy68y3gkyrn3z7g9zh54sfpp3g9x5yp342g97xxrn4mc9rd59fwq4zy6jr7lfyp70qjxuhmys23xryce6kdvwzk002qf3jhs67lxazl66cpcew920ee98yk3vwc54vneuemzyrmjfmvdmeqhtt80fa5t5ed8vw95cx4304d4jxplsrkc43r3gqp9y9k3g9v2g5dewyl38x2l97vpw79tuyrkah4xvxk943fhx5za532t7gq5v9fzk26pzcsdcwzlfxntw8s5af6j9k7eenz09tjmcxcecyhej052gpk2ajdwncmfhm22cpwrr3u4vpwwhrwarc2r0wsytl830ke99kxfezk5eeveyahrhenx7hkg3pqddc70cuf0676290tqvutsqyfrqpe7qtrpqf3wykxx8amkgf36pv5qnctd5yphmzqsv9jvwd63arzd0vnp27qvf0wk9ngqhr64hyku2mgzu3nctm7j70luqjv834dj8zgnxdpxw0rwaujgun3p6vl04pylt9899e49nr47j835ky5f6zpf3aye8hfxwsvmg84jlrz0vmdtx6kelx7vvkrx0gn5wmlseejwh0zev5sgzq2474udz5egxugxvdr0wku2h57g52pvgya2c9jr4j0",
+		},
+	}
+	for _, c := range testCases {
+		id, err := HybridIdentityFromKey(c.key, c.salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		if id.String() != c.expID {
+			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+		}
+		if id.Recipient().String() != c.expRcp {
+			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+		}
+	}
+}
+
+func TestHybridIdentityFromPassword(t *testing.T) {
+	testCases := []struct {
+		key    []byte
+		salt   []byte
+		expID  string
+		expRcp string
+	}{
+		{
+			key:    []byte{},
+			salt:   []byte{},
+			expID:  "AGE-SECRET-KEY-PQ-1CZF7LS45MGJEP5QTC7WQYXDYMV0GDY5VPH9Y0AAYSC66957K4HWQH8YJAS",
+			expRcp: "age1pq1sc7xlzw5za6j28fz3x2csz9hrktk0rdqrtst5qeywyqw7kkfdq2ykltkspny2yt97pvsvhp80eyu99m3dnd5srwqwxkqevuexjpydr04qvt7jcykmvjuxlyxc7f9a8yv0e9sxva4qpwspw357k6vjha2k9tmsdl7awdf8j46xqrg6rgnhqqagtx8y0r36wv0mwa4ra2gst8r8v9f73gux25eu9jh6v7tj84adnqf320uwgzjxknpyejye9ctwkcak9h67yw2mlsjp525hq5krq3q8ffmxs9jj6gm7kkphgjj3nsvvmqyc6s7nj5468r6h85yhn2m39w4ezndsmc8wgp5xsef8fuatdf5kvps902hs3cjtzkafzyp42jqu2qvg09epwyexkvv3tr83wyg4varpq4v69zkkc2ck95anyyxu72u6cpk00d5j7xe2ps0pfd7xuqzsajymv3gcd5despn8fp2fex2c6kxex9kzjg3vc0zuu0g0tpk3h2hhcssvjh44qtk6eyhs6rvzff6zpukqcj6f0ghav99mp4ej04cgw2h4c82q6azq47r5w4h38949dhjfxgp8jx20wydlq3sqnkznmg89r44dpqf9d4yhkpdlfxyx34ge0ugzsmf26ezev4ft89pdl2xrmjexhexmqlgd9nxu0d25ax8plexwh7gguwwn92yyfdc56u6kfwycwd6j3ky6zqg6ljjkx6vpcpx52g0nzx45q7dmem46zzqkawkch76m9l936gf33jmzsppvrqrxle9l3k3n9afsud2s3r3z2qle90yyfxtkf65utavym36y5e9sfe2lpaxuawz3mr5heszp64jtzh7zdw4y45sysdmzjv80rrhz85m0y87cjf9wqayx4s4gt0s3ft3v7xz589pg06u7wktj7e7f9vtjakslzfd4fg5lrnp2crzw8jmpxgem3m0x5crwhsyc4cjw0zkspxjm0puzzsn8xntxfq99djf3xve3pc6tzykuep43ngyhgt7mpm6ggavctvymwx5qaq8z02g90985k2z2cu5hkwhztfsqnaumxne7kkv3nezhrsmel5gw3490g5j0ejwp44yj3v92m3ry35a0dlzhpqg8ast5zye8qf7sccyxcsnnaagejmmru8fq6wucs2qesluc5dt3x39u4wysyyry6z63qxnl33yjq2jzvc3sx0jz8gmtfck05uwh5gz690jpe24gnsejjpe9vqshlfh2edrfzcky28r3f4fpl9va2d5gam3s5lmkaa7xjepdcznakvv2hqttah3ysfu6fe29ycpql4grpqrgl6qzl3tjq7jvqfmhmxrmxjqwxlhtrksk55kyatusa4nedjsqptvy4ggsydwfk65zhymzn8xk7g4s8dgdga2l3av5hrtf0guwcrnyua3fj3lcpj4vn3ejcqmfq098g904q0jjq20yngqc80fxnuuyt7fsea03360hp2sm9cqrwsfqe0n4yas2zmnekw8s24e8mxn202egwasksvv2ymz7783szgnnsaem24gymzvhtj3alkhepfxy34nzxxltykgr3fp0hzcvh7jgdqkkavv4vyvc8z322efnged5gncspwf7c6lf24uarr2vzwfd9ff7e0u2x99xxduzmam2842zep0wv2kz4w8wpyqxa4zrku5gl47dvkl97tuxyy2zh5x8jq65dgztyauqagyw59r34kvnrfvnfk0fpth5jdegky9te3uc9c6y3ucvayrw8quxrj9gtqezk4a33370f8ezza3qr3489052r4pe89dwvfn7c68k4zkjdyxgur4vmjgj38g708r0t5gkccctg0ttctrdp80f5asdff4prads4hu69dk43yqedmd5txmgnrnx5eueg93mkk69swnsvtg6qrw7scjc28jhfuwxg7grcdhkfav",
+		},
+		{
+			key:    nil,
+			salt:   nil,
+			expID:  "AGE-SECRET-KEY-PQ-1CZF7LS45MGJEP5QTC7WQYXDYMV0GDY5VPH9Y0AAYSC66957K4HWQH8YJAS",
+			expRcp: "age1pq1sc7xlzw5za6j28fz3x2csz9hrktk0rdqrtst5qeywyqw7kkfdq2ykltkspny2yt97pvsvhp80eyu99m3dnd5srwqwxkqevuexjpydr04qvt7jcykmvjuxlyxc7f9a8yv0e9sxva4qpwspw357k6vjha2k9tmsdl7awdf8j46xqrg6rgnhqqagtx8y0r36wv0mwa4ra2gst8r8v9f73gux25eu9jh6v7tj84adnqf320uwgzjxknpyejye9ctwkcak9h67yw2mlsjp525hq5krq3q8ffmxs9jj6gm7kkphgjj3nsvvmqyc6s7nj5468r6h85yhn2m39w4ezndsmc8wgp5xsef8fuatdf5kvps902hs3cjtzkafzyp42jqu2qvg09epwyexkvv3tr83wyg4varpq4v69zkkc2ck95anyyxu72u6cpk00d5j7xe2ps0pfd7xuqzsajymv3gcd5despn8fp2fex2c6kxex9kzjg3vc0zuu0g0tpk3h2hhcssvjh44qtk6eyhs6rvzff6zpukqcj6f0ghav99mp4ej04cgw2h4c82q6azq47r5w4h38949dhjfxgp8jx20wydlq3sqnkznmg89r44dpqf9d4yhkpdlfxyx34ge0ugzsmf26ezev4ft89pdl2xrmjexhexmqlgd9nxu0d25ax8plexwh7gguwwn92yyfdc56u6kfwycwd6j3ky6zqg6ljjkx6vpcpx52g0nzx45q7dmem46zzqkawkch76m9l936gf33jmzsppvrqrxle9l3k3n9afsud2s3r3z2qle90yyfxtkf65utavym36y5e9sfe2lpaxuawz3mr5heszp64jtzh7zdw4y45sysdmzjv80rrhz85m0y87cjf9wqayx4s4gt0s3ft3v7xz589pg06u7wktj7e7f9vtjakslzfd4fg5lrnp2crzw8jmpxgem3m0x5crwhsyc4cjw0zkspxjm0puzzsn8xntxfq99djf3xve3pc6tzykuep43ngyhgt7mpm6ggavctvymwx5qaq8z02g90985k2z2cu5hkwhztfsqnaumxne7kkv3nezhrsmel5gw3490g5j0ejwp44yj3v92m3ry35a0dlzhpqg8ast5zye8qf7sccyxcsnnaagejmmru8fq6wucs2qesluc5dt3x39u4wysyyry6z63qxnl33yjq2jzvc3sx0jz8gmtfck05uwh5gz690jpe24gnsejjpe9vqshlfh2edrfzcky28r3f4fpl9va2d5gam3s5lmkaa7xjepdcznakvv2hqttah3ysfu6fe29ycpql4grpqrgl6qzl3tjq7jvqfmhmxrmxjqwxlhtrksk55kyatusa4nedjsqptvy4ggsydwfk65zhymzn8xk7g4s8dgdga2l3av5hrtf0guwcrnyua3fj3lcpj4vn3ejcqmfq098g904q0jjq20yngqc80fxnuuyt7fsea03360hp2sm9cqrwsfqe0n4yas2zmnekw8s24e8mxn202egwasksvv2ymz7783szgnnsaem24gymzvhtj3alkhepfxy34nzxxltykgr3fp0hzcvh7jgdqkkavv4vyvc8z322efnged5gncspwf7c6lf24uarr2vzwfd9ff7e0u2x99xxduzmam2842zep0wv2kz4w8wpyqxa4zrku5gl47dvkl97tuxyy2zh5x8jq65dgztyauqagyw59r34kvnrfvnfk0fpth5jdegky9te3uc9c6y3ucvayrw8quxrj9gtqezk4a33370f8ezza3qr3489052r4pe89dwvfn7c68k4zkjdyxgur4vmjgj38g708r0t5gkccctg0ttctrdp80f5asdff4prads4hu69dk43yqedmd5txmgnrnx5eueg93mkk69swnsvtg6qrw7scjc28jhfuwxg7grcdhkfav",
+		},
+		{
+			key:    []byte("hello"),
+			salt:   nil,
+			expID:  "AGE-SECRET-KEY-PQ-1FLHUXKNCY75FEDEVT6204RZ6XPQTKTMQX6UR7L6TZ52WSAKYHSLS3YGJ9E",
+			expRcp: "age1pq1j0n3hzl2t5ydg9zj49pt2ycuhfp6gzkx5yhhw0ukx9hq27gud6mcr9t6cx3m0806ssyadvfma4uj6jkg08q5v0g0jx9nesqldmwtv5tkg0z5rn4wucs02qt80d2ukmmycde5wuchx30v0kdc8g4eg0lpjrneqpud3p47y4sj65n9m4tqkpqatzj8pgw0gytadncq7ezv8ny7ya9kxn98l7thzlsmfuj82xavc042sfxpfsxqth22er5ptyqltfu2l2pawrp0kcpvudrrcqfdch7gwgqk66uprzfrk349py735rrcnwm2mf4a7czzen58dc3gzfea9qscsxj6vc24r4w3se2ag9j7x3fa06j4cr5n26d50w5ap2su8s7ht4fk7ptxthg682ywcknhu99e06cfwdsz5c989hynkqp0j2npv2fctuzm8j7u8ka3srdnef355qfzz622hd24e42uxtrs7vq9pxm52wsxykr3hn5cqmcqrpxg0kq4eceqeey4dgmlqxyn9fv2juttj3f9skp3gyfkkw4jccrtr4f6q9s52vkk43yxkhtdj6xpy95gg72x32ps4e96dvz2sshmcynd2zrxxqsrr7p69nvyq73eyss6u543gztmgaulcp8zwymfsdcce2v9kva20kjw5g0r62xmz2pk7lryf0ujvtdt5pfn3vcvg6xr335zqk9hszdkgu7mkvklgap0qrx2ytupzflqyfvzvdmgjc9d8yek5n36wlaw2qvy4wzrpc98pu44y7xhz00dcss3y4hsruq629zxjapmremcz6drs49my3esxmek4fae5wcjrsntk76s57scscu8fvg24hr9dfhhchrjnpngdqgh6x0zqc5q8jezeqva9gjqnzpsq4gz9unjtspwuvwfgnpat8f54yhk598swnpe39a52guklk2qfw0uf7ruxrqwdggf4mr7km3q408cvrl6tpek5vulkutx3cnsrnz849hp2naul2mg9lqe35ffmjuqrj4f0nnjhxqse6axvhwq5gvznuludd886stxypg6j5a4ygxn9f7ktp4kdjl25qafu8ztqzdfqcyjc7z89sqhseycx3cehfaxttv3wp0zvvnfvjzayp7q4qvgw5euqx2a7yy9q3agthf6y3jgel0cjavh72t4gczewwmpyrk2gdtkkvjkfvzslcm74kysn5f589sf5372fy2833wphathl6kcq8q5x3prvk99ddqmk8qfu9qu3km2hxtjwqng57a6z8787uds0hulnju0m3l4p9d3fzvha2sqqt3nyquw9v50kepx9jkqkfyp0w4kckscxy0m63wytcqq8r06r8yyzlnqd92gsae2rk4hk3vsgzuav9jj5jysuwg4h96mqtg2p2e09v3h9nz6a2zp7n2e78urx8xlzgk7dgx5hp6ywaxzww4es0tyqe7pw7qjeuftljq4ta95scnqpge62z4tsefhzmtqyt22re8ynvf7uu3ynwe9yx96hnt6hdmc8dcz7pqzqs7dhctplrq8cedhetwu0tphw3gkkgx2davn9qt44p4c2qfhhmqa9sru7p8msd2qzs3n5u4rstrhvd636zzyx0lxp32hexf5ffqdqv6n3htsr0ngg6p0qgamtfvr4g3hc0yeddx056dxn35kk2ddhjpxpxjz4ft5xmx3dpp5kg9uge65tudpqjy3sc08vgq7p7muefyyaw3vq2px8xn933udgfprm8wvg6p24yj5tq4vsgewu62mfwdgq3afxnaw5etvlxnn7zvtf9ympt594x6u484lykpn0s638x5c2w5qsmacz8acx3csayjkrwhyz2ywptqcs3w7pas24snkeyfhynfqg2xjtkthj9umxjsd7eq59egjawk7e9geg0c0vq5w79hr3ce786jqfvjc8jqk9fn5g57h2yud",
+		},
+		{
+			key:    []byte("hello"),
+			salt:   []byte("bye"),
+			expID:  "AGE-SECRET-KEY-PQ-1MX0ZLK9RYQPUUDXWDNTFYQ6U88T2UQ4WRUXM3C73AJYH8D9URPXQSR5KRR",
+			expRcp: "age1pq1l2vx736hstdjhsj3gjpwc7jvr7cc0w6j56ms279mfd2d49z0nnsys24gcs2scksauve49cepuqd8qnkf0fju9zyq5vmcq2za9rft4fpx3uecwt7c4wkg4qunwv5fw944c649g02l675dqsep4hx8eykrs9jhz7n57ufpjqyh3qxtqm5cht2r8xj2996deqtm3xcs83cjv4k32l7qypjeg7vlhzd3s733g4ztjvp7z3her6u2ms5qylyzt2t7sazrff4xynyrf9jqqs7hf673jfpgkxgz6j3cwqsk29gch4xvys8f6xl08xpnkf9efrcxnuk6xysr2420dswvj2jzg6axhlmjgsftkeltpaszfdkpnmkj40wt3rr7s3w0w6qtmke64rwxrx59h3dtc9as7ur48gggz8sydm2uet7h7gvm8uwq9yrc7cd5rfj22a8v9jy8njcqwjykqr7rrw5ncjr9qdgl026kjdqj2kgrpje4zqa5gatndj979ag9azp5psp2w9lqy28n6yaxjcsvht3kvhwcqh0d333hq8rlhr4qfk0vh8rece3j7u5pga6tc02n7txmzvwyctxg7ehqj2auxpzttuuyxedthgpzmrzlulq3hqmslkyuzqfnpz679zzqdrq4lwge90eksq67dw4xcvjuqwys52zuwuyt458s0dcrxzvdcfthxdmhs58vvfxlynzqgqtaysuxluyfjlr4q50d8rqq4v45nydc0wset7wrhqga4rmzkqkuv3a87mf868zhwtxw24dzkcs0xkys6jv9x7vxqk36ep56uagrd9tcjranu3gvt25mxgg38zpjxxmpy0mqkjexjsk3wk8jx43znmxgaja6cvzks3e7dp09esj7ywvxegn4x3qnpmm2jchguvg9u7qkexjjauhh8vhf0qv5t3wkm595y4spmfl5qxxs2f24508fjwyv5c5usw8f0pwjp9fkzpx58dvc6g3z747k2k37kcnt7q7xp2a0ap6engjhfjt3wzm4c3ut862d5ftpmzctf09cf8ghu2nudnrwkcwxwudmpe05fdg80spla4rdnt4pzvfn32r9encymfa27mpzy3fnsyxfs60sk9zqwu3khwm5veypv92utwf2wwqyg5y9vcu4ml24qnkgnwhyht54yyqhjdec25sf6d3rwsnfrxszqu4lv8pm78v9k3frcu9yczm3s7qd952vhjsvytan9reqz2hznqjphe79v04k8eqzk7s2jyr0r9ptx5m5ncgzz94kx5gdg43dyu6s3vs7e0zm62nf4ss05qhzyy2d7gffyjcq093sw444z0at2crc57upkqyu766s3lvdeqakzjz6xk3jvy6hmwkmjmkksc0tju58p09w7yyne9tgsntjp2lx79zen4m8fsz4267uk9s4fwxwmp22wvmregcgwd6j4nawj0wf763lsd47kkq49pdcv0f2sdaznpf9lv4j9ts59s6xpykczslxj47fxa5x0jspevqm4wxaf8ps02n4cgy9exnseat9f3vrvf93z7q06euewvzy0ytue5g32vpzgwp2p9rztnrfhtgndmgv995tzf7h4ez524puryg2j4e3z7gd7sd4fxuzm3mp3qxupckhy4f7779tdd4gz54v83yzyr8d52tk4zczyytfjn2yc2kmyzc6tt3c3qugawgcjnc8k0jtj2c2sjfqgnzchp225ucmd6lntxxv9y6wtr90ykqvq82uwf9vreeckp8swn8rwj2cdn78kxlst8l0q33j539mljyf4prnnkmggp9v0pq0npznwqupq63nn9wy4tnxdvw7tvsk0mm0czyug7w5y70swf7xmy92mpazx7gkzv62vxyxx5tv6706v9qy94t3rrn29qr8xa8ltk27tevl88hputp43ffs9qt53sytunyhpuh3jl7e",
+		},
+		{
+			key:    []byte{125, 231, 97, 121, 25, 36, 248, 109, 22, 245, 220, 7, 19, 151, 123, 246, 40, 27, 194, 4, 133, 222, 108, 216, 32, 162, 132, 16, 142, 151, 22, 104},
+			salt:   []byte{62, 98, 62, 226, 73, 49, 93, 5, 172, 234, 232, 145, 139, 78, 172, 4, 139, 156, 74, 57, 215, 32, 72, 216, 17, 74, 220, 250, 146, 3, 190, 254},
+			expID:  "AGE-SECRET-KEY-PQ-198MMRVHTD525WYTDV9F3UEM9D8QAMC5R0XVHTUVLPD9LNK262R0SG9Y8FW",
+			expRcp: "age1pq1c5wtq33x2dwmz3pn7f68x3ehelmmahu8ygay334mpgql0pzr3035mumjyynz0ns9sj6am7jzfmtpnk5r5pv4hz0ngvakt52equucg9hy3k70fsfdqp64x76sgn3skj02trpnym2eqftpxvah4d7y67luds9j5anh4d0mh3gm36wqq7uyd2tst2fdqg4llda5dr7r406ggqzpguc7uw88fx2cjewxlqk9n3vwqx7cy508rdn4ka7x9g3rrv76ste8a9vrf5esvujpcp85w4ssqm4hmrrd6f9978as2z5crly9fnqgw7pyqz5v27dxmqx5j8lckgyxygk2fzqku6ah2y2r8lznszcw77wr3gstj0ap6te4nv8l30pdju8p9qx228mf9p7kcx46xpvhxhxhk9284s3sr8wsxeu9wkfaq88vxcqvfpdup7230k9ycf38c7wg6yu4h5ejmpnpczqh3fy50wqhwymxrvxzr89fzc3xy277rxrvw6kdsxu567vhvktywm876zqjtvuj0hzepyhs3scf2fm6md0ww96zsgyh2yae9jql5cmh09nm54yfw7wvlvpm342pkaktwj2tx76qh0rrfmmhduypdn46suel7ukwqzm532kkz0f34sldsp9m92dk9jael0fzv0zp930xh9jrmv3jj05yywf4yvthyrch00ps673dmgefc2qx5z05250ch3u4m45rsl2qqukxkw0nqsvxv7apez9sylqyl66ehra7qhslwp5pleppwh9p9cq8rwzfsp42j7mxpq4j2fvu3ds8f8njkrvnk9gdf5n039ctwdgn3t3whxgqd3v0aapeqj4kkvmxspu6xgl4ucfgmwqnazf4lwgcjcg9qxvzwwzu5wsr23nj6jfjkpe7yrvu0jnqef36z6tcsudm99xvk0x8rjmkq4acl4g8zsvmyu7cj2ewwwrfmpfdvvf24gws88nez4nuzd9mdy6gtfxg5l63qz6s2avkjvwt75qd69vskpkqy69sj3ud2cauzsv8rgc8yv6e5v8xdj0wx7p6cw9uzpt42ezyqhe6wgc9d9lq3umk8cvu3tcvjrystfzdddqttwsg5agu9fkvkq9zym2mkwr9ve6js36rhmfveqfyvv5ny79ufukymxavklnswuwsvuvm922xs9wryx5vhv4rn835ngn5923djsdwhtve7r62pv0sj522sjyl8lrpqvusdnj3r467w7apwtzza3gjpgucgtuy0xa0kagcq7p084rpu8yxlskp0hm4v2fryz60ugydpupkruycynk0ts9mv5w0uwvvdlmcugd440hmqqrazehc3ppvmj4qgy0kql46hnvnr0zvepk0kc46cl5m8hpnnzc4cfz60hql5n6x690p4f6hsykhav8d8p5s0wugyraj3a95dn9fwvltmwjx4328kjl44y439fqg435qm2tdguzvu9zfgeu4dwn7xkkp7kwgryfp0m0n9vtyq9x70w85ezzh9ffpesr9n7075k9l4t88grp8qjz9rtcjzyzte3zhgdcsvjr84h5xs5f32elmsdu37qd8fpv62v2njurjtdynf2y627tv9e4m63cje8lqfqldg380dg0n0y4lknszydyncwqxx0vuw68yx3pguc3mvh5tn7gkxrrr5jtwg2wq4kgkhe4hgdalqsssusesd64cyrdufl4f02vj38w8c4q0dqesycm8jflh43vg93990qs4hwdgh7ju3w25x26qn2p499uw32t0k6jmtz28q07serjqtss54f9vdr92cg3hsmaxts059nyxtrp33r5pckfuymcv9p6v0wlreh52r4v2gf720n4ntmskkgnh6jp05kvnhpu6nuvzf77snlft3fggquz5mpmdlqqqc5ql0l9ckcp8laf2xf9c6q9hkvzagnx43lsypqgcqvw4",
+		},
+	}
+	for _, c := range testCases {
+		id, err := HybridIdentityFromPassword(c.key, c.salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		if id.String() != c.expID {
+			t.Errorf("age identity mismatch: expected '%s' got '%s'", c.expID, id.String())
+		}
+		if id.Recipient().String() != c.expRcp {
+			t.Errorf("age recipient mismatch: expected '%s' got '%s'", c.expRcp, id.Recipient().String())
+		}
+		id2, err := HybridIdentityFromPasswordWithParameters(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		id3, err := HybridIdentityFromKey(argon2.IDKey(c.key, c.salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads, 32), nil)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		testHybridIdentityEquality(t, id, id2)
+		testHybridIdentityEquality(t, id2, id3)
+	}
+}
+
+func BenchmarkHybridIdentityFromKey(b *testing.B) {
+	for b.Loop() {
+		HybridIdentityFromKey(nil, nil)
+	}
+}
+
+func BenchmarkHybridIdentityFromPassword(b *testing.B) {
+	for b.Loop() {
+		HybridIdentityFromPassword(nil, nil)
+	}
+}
+
+func FuzzHybridIdentityFromKey(f *testing.F) {
+	testCases := []struct {
+		key  []byte
+		salt []byte
+	}{
+		{
+			key:  nil,
+			salt: nil,
+		},
+		{
+			key:  []byte{},
+			salt: []byte{},
+		},
+		{
+			key:  []byte("hello"),
+			salt: []byte("salt"),
+		},
+	}
+	for _, testCase := range testCases {
+		f.Add(testCase.key, testCase.salt)
+	}
+	f.Fuzz(func(t *testing.T, key, salt []byte) {
+		id, err := HybridIdentityFromKey(key, salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		id2, err := HybridIdentityFromKey(key, salt)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		testHybridIdentityEquality(t, id, id2)
+	})
+}
+
+func FuzzHybridIdentityFromPasswordWithParameters(f *testing.F) {
+	testCases := []struct {
+		key  []byte
+		salt []byte
+	}{
+		{
+			key:  nil,
+			salt: nil,
+		},
+		{
+			key:  []byte{},
+			salt: []byte{},
+		},
+		{
+			key:  []byte("hello"),
+			salt: []byte("salt"),
+		},
+	}
+	for _, testCase := range testCases {
+		f.Add(testCase.key, testCase.salt)
+	}
+	f.Fuzz(func(t *testing.T, password, salt []byte) {
+		id, err := HybridIdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		id2, err := HybridIdentityFromPasswordWithParameters(password, salt, 1, 1, 1)
+		if err != nil {
+			t.Fatalf("failed to create age identity: %v", err)
+		}
+		testHybridIdentityEquality(t, id, id2)
+	})
+}
+
+func testHybridIdentityEquality(t *testing.T, id, id2 *age.HybridIdentity) {
+	if id.String() != id2.String() {
+		t.Fatalf("private identities do not match")
+	}
+	if id.Recipient().String() != id2.Recipient().String() {
+		t.Fatalf("public recipients do not match")
+	}
+
+	out := &bytes.Buffer{}
+	in, err := age.Encrypt(out, id.Recipient())
+	if err != nil {
+		t.Fatalf("failed to init age encryption: %v", err)
+	}
+	if _, err = in.Write([]byte("hello")); err != nil {
+		t.Fatalf("failed to write plaintext to encrypt writer: %v", err)
+	}
+	if err := in.Close(); err != nil {
+		t.Fatalf("failed to close encrypt writer: %v", err)
+	}
+
+	decrypted, err := age.Decrypt(out, id2)
+	if err != nil {
+		t.Fatalf("failed to init age decryption: %v", err)
+	}
+	decryptedData, err := io.ReadAll(decrypted)
+	if err != nil {
+		t.Fatalf("failed to read plaintext from decrypt reader: %v", err)
+	}
+	if string(decryptedData) != "hello" {
+		t.Fatalf("plaintext mismatch! expected 'hello', got '%s'", decryptedData)
+	}
+}
