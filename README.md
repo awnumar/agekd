@@ -4,8 +4,6 @@
 
 AgeKD is a Go library that can be used to derive [`age`](https://github.com/FiloSottile/age) identities deterministically from keys or passwords.
 
-This package **does not** provide a CLI. If you need that functionality, check out [age-keygen-deterministic](https://github.com/keisentraut/age-keygen-deterministic).
-
 See the upstream `age` [documentation](https://pkg.go.dev/filippo.io/age) for further guidance on working with `age` identities and recipients.
 
 ## When would you use this?
@@ -74,4 +72,4 @@ For guidance on Argon2id parameter selection, refer to [rfc9106](https://www.rfc
 
 Unless otherwise specified within a file, this code is distributed under the [MIT license](/LICENSE).
 
-The [`bech32`](/bech32/) package was copied verbatim from https://github.com/FiloSottile/age/tree/v1.2.0/internal/bech32
+The [`bech32`](/bech32/) package was copied verbatim from https://github.com/FiloSottile/age/tree/v1.3.1/internal/bech32
