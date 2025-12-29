@@ -6,9 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/awnumar/agekd/bech32"
-
 	"filippo.io/age"
+	"github.com/awnumar/agekd/bech32"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
