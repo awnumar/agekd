@@ -15,7 +15,7 @@ import (
 )
 
 // X25519IdentityFromKey derives an age X25519 identity from a high-entropy key. Callers are responsible for
-// ensuring that the provided key is suitably generated, e.g. by reading it from crypto/rand.
+// ensuring that the provided key is suitably generated, e.g. 32 bytes read from crypto/rand.
 //
 // For post-quantum security, use HybridIdentityFromKey instead.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
