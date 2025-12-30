@@ -1,10 +1,11 @@
 module github.com/awnumar/agekd
 
-go 1.23.2
+go 1.24.0
 
 require (
-	filippo.io/age v1.2.1
-	golang.org/x/crypto v0.32.0
+	filippo.io/age v1.3.1
+	filippo.io/hpke v0.4.0
+	golang.org/x/crypto v0.46.0
 )
 
-require golang.org/x/sys v0.29.0 // indirect
+require golang.org/x/sys v0.39.0 // indirect

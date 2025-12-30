@@ -6,26 +6,19 @@ import (
 	"io"
 	"strings"
 
-	"github.com/awnumar/agekd/bech32"
-
 	"filippo.io/age"
+	"github.com/awnumar/agekd/bech32"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
 )
 
-const (
-	DefaultArgon2idTime    uint32 = 4
-	DefaultArgon2idMemory  uint32 = 6291456 // KiB = 6 GiB
-	DefaultArgon2idThreads uint8  = 8
-
-	kdfLabel = "github.com/awnumar/agekd"
-)
-
-// X25519IdentityFromKey derives an age identity from a high-entropy key. Callers are responsible for
-// ensuring that the provided key is suitably generated, e.g. by reading it from crypto/rand.
+// X25519IdentityFromKey derives an age X25519 identity from a high-entropy key. Callers are responsible for
+// ensuring that the provided key is suitably generated, e.g. 32 bytes read from crypto/rand.
+//
+// For post-quantum security, use HybridIdentityFromKey instead.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
-	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabel))
+	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabelX25519))
 	secretKey := make([]byte, curve25519.ScalarSize)
 	if _, err := io.ReadFull(kdf, secretKey); err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
@@ -33,12 +26,16 @@ func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
 	return newX25519IdentityFromScalar(secretKey)
 }
 
-// X25519IdentityFromPassword derives an age identity from a password using Argon2id, with strong default parameters.
+// X25519IdentityFromPassword derives an age X25519 identity from a password using Argon2id, with strong default parameters.
+//
+// For post-quantum security, use HybridIdentityFromPassword instead.
 func X25519IdentityFromPassword(password, salt []byte) (*age.X25519Identity, error) {
 	return X25519IdentityFromPasswordWithParameters(password, salt, DefaultArgon2idTime, DefaultArgon2idMemory, DefaultArgon2idThreads)
 }
 
-// X25519IdentityFromPasswordWithParameters derives an age identity from a password, with custom Argon2id parameters.
+// X25519IdentityFromPasswordWithParameters derives an age X25519 identity from a password, with custom Argon2id parameters.
+//
+// For post-quantum security, use HybridIdentityFromPasswordWithParameters instead.
 func X25519IdentityFromPasswordWithParameters(password, salt []byte, argon2idTime, argon2idMemory uint32, argon2idThreads uint8) (*age.X25519Identity, error) {
 	return newX25519IdentityFromScalar(argon2.IDKey(password, saltWithLabel(salt), argon2idTime, argon2idMemory, argon2idThreads, curve25519.ScalarSize))
 }
@@ -63,8 +60,8 @@ func newX25519IdentityFromScalar(secretKey []byte) (*age.X25519Identity, error) 
 
 // saltWithLabel appends the bound kdfLabel to the provided salt.
 func saltWithLabel(salt []byte) []byte {
-	s := make([]byte, 0, len(salt)+len(kdfLabel))
+	s := make([]byte, 0, len(salt)+len(kdfLabelX25519))
 	s = append(s, salt...)
-	s = append(s, kdfLabel...)
+	s = append(s, kdfLabelX25519...)
 	return s
 }

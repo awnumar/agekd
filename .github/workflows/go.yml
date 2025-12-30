@@ -39,3 +39,9 @@ jobs:
 
     - name: FuzzX25519IdentityFromPasswordWithParameters
       run: go test -fuzz=FuzzX25519IdentityFromPasswordWithParameters -run=XXX -fuzztime=1m -v .
+
+    - name: FuzzHybridIdentityFromKey
+      run: go test -fuzz=FuzzHybridIdentityFromKey -run=XXX -fuzztime=1m -v .
+
+    - name: FuzzHybridIdentityFromPasswordWithParameters
+      run: go test -fuzz=FuzzHybridIdentityFromPasswordWithParameters -run=XXX -fuzztime=1m -v .

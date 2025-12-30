@@ -168,7 +168,7 @@ func FuzzSaltWithLabel(f *testing.F) {
 	}
 	f.Fuzz(func(t *testing.T, salt []byte) {
 		swl := saltWithLabel(salt)
-		if !slices.Equal(swl, append(salt, []byte(kdfLabel)...)) {
+		if !slices.Equal(swl, append(salt, []byte(kdfLabelX25519)...)) {
 			t.Fatalf("saltWithLabel has invalid value: %v", swl)
 		}
 	})
