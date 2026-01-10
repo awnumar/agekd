@@ -1,16 +1,15 @@
 package agekd
 
 import (
+	"crypto/hkdf"
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"strings"
 
 	"filippo.io/age"
 	"github.com/awnumar/agekd/bech32"
 	"golang.org/x/crypto/argon2"
 	"golang.org/x/crypto/curve25519"
-	"golang.org/x/crypto/hkdf"
 )
 
 // X25519IdentityFromKey derives an age X25519 identity from a high-entropy key. Callers are responsible for
@@ -18,9 +17,8 @@ import (
 //
 // For post-quantum security, use HybridIdentityFromKey instead.
 func X25519IdentityFromKey(key, salt []byte) (*age.X25519Identity, error) {
-	kdf := hkdf.New(sha256.New, key, salt, []byte(kdfLabelX25519))
-	secretKey := make([]byte, curve25519.ScalarSize)
-	if _, err := io.ReadFull(kdf, secretKey); err != nil {
+	secretKey, err := hkdf.Key(sha256.New, key, salt, kdfLabelX25519, curve25519.ScalarSize)
+	if err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
 	}
 	return newX25519IdentityFromScalar(secretKey)
