@@ -1,24 +1,22 @@
 package agekd
 
 import (
+	"crypto/hkdf"
 	"crypto/sha256"
 	"fmt"
-	"io"
 
 	"filippo.io/age"
 	"filippo.io/hpke"
 	"github.com/awnumar/agekd/bech32"
 	"golang.org/x/crypto/argon2"
-	"golang.org/x/crypto/hkdf"
 )
 
 // HybridIdentityFromKey derives a hybrid age MLKEM768X25519 identity from a high-entropy key. Callers are responsible for
 // ensuring that the provided key is suitably generated, e.g. 32 bytes read from crypto/rand.
 func HybridIdentityFromKey(key, salt []byte) (*age.HybridIdentity, error) {
 	uniformSalt := sha256.Sum256(salt)
-	kdf := hkdf.New(sha256.New, key, uniformSalt[:], []byte(kdfLabelHybrid))
-	secretKey := make([]byte, hybridSecretKeySize)
-	if _, err := io.ReadFull(kdf, secretKey); err != nil {
+	secretKey, err := hkdf.Key(sha256.New, key, uniformSalt[:], kdfLabelHybrid, hybridSecretKeySize)
+	if err != nil {
 		return nil, fmt.Errorf("failed to read randomness from hkdf: %w", err)
 	}
 	return newHybridIdentityFromSecretKey(secretKey)
